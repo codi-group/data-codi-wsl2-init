@@ -141,6 +141,14 @@ main() {
   enable_docker_service
   usermod --append --groups docker "$TARGET_USER"
   install -d -o "$TARGET_USER" -g "$TARGET_GROUP" -m 0755 "/home/$TARGET_USER/Developer"
+  install -d -o "$TARGET_USER" -g "$TARGET_GROUP" -m 0777 \
+      "/home/$TARGET_USER/Volumes/sql-server/data" \
+      "/home/$TARGET_USER/Volumes/sql-server/log" \
+      "/home/$TARGET_USER/Volumes/sftp/testuser/upload"
+
+  if ! sudo -u "$TARGET_USER" docker network inspect local-network >/dev/null 2>&1; then
+      sudo -u "$TARGET_USER" docker network create local-network
+  fi
 
   check_installation
   write_success_marker
