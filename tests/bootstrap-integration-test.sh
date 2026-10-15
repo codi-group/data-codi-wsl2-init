@@ -106,6 +106,7 @@ for directory in \
   test -d "$directory"
   test "$(stat -c '%U:%a' "$directory")" == "$TEST_USER:777"
 done
+docker network inspect local-network >/dev/null
 docker version >/dev/null
 docker compose version >/dev/null
 docker buildx version >/dev/null
@@ -127,6 +128,7 @@ for directory in \
   "/home/$TEST_USER/Volumes/sftp/testuser/upload"; do
   test "$(stat -c '%U:%a' "$directory")" == "$TEST_USER:777"
 done
+docker network inspect local-network >/dev/null
 runuser --login "$TEST_USER" --command "PATH=$VALIDATE_PATH $INSTALLED_VALIDATE"
 
 printf 'bootstrap-integration-test.sh: PASS\n'

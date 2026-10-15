@@ -31,6 +31,7 @@ check_docker_buildx() { return 0; }
 check_docker_service() { return 0; }
 check_docker_group() { return 0; }
 check_docker_daemon() { return 0; }
+check_local_network() { return 0; }
 check_hello_world() { return 0; }
 id() {
   [[ $1 == '-u' ]] || return 1

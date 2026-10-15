@@ -138,6 +138,10 @@ check_docker_daemon() {
   [[ -S $DOCKER_SOCKET && -r $DOCKER_SOCKET && -w $DOCKER_SOCKET ]] && docker info >/dev/null
 }
 
+check_local_network() {
+  docker network inspect local-network >/dev/null
+}
+
 check_hello_world() {
   docker run --rm hello-world >/dev/null
 }
@@ -161,6 +165,7 @@ main() {
   check 'docker.service is enabled and active' check_docker_service
   check 'current user is in docker group' check_docker_group
   check 'Docker socket and daemon access without sudo' check_docker_daemon
+  check 'local-network Docker network is available' check_local_network
   if $skip_network_smoke_test; then
     skip 'Docker hello-world smoke test (network-dependent; full validation remains incomplete)'
   else

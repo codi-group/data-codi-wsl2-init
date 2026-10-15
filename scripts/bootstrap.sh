@@ -48,6 +48,15 @@ ensure_ingest_mount_directories() {
       "$TARGET_HOME/Volumes/sftp/testuser/upload"
 }
 
+ensure_local_network() {
+  # A newly added docker-group member does not acquire that group until its
+  # next login. Bootstrap already runs as root, so create this daemon-scoped
+  # network directly instead of using a stale target-user session.
+  if ! docker network inspect local-network >/dev/null 2>&1; then
+    docker network create local-network >/dev/null
+  fi
+}
+
 require_ubuntu_noble() {
   [[ -r $OS_RELEASE_FILE ]] || die "Unable to read OS release information: $OS_RELEASE_FILE"
   # shellcheck disable=SC1090
@@ -153,9 +162,7 @@ main() {
   usermod --append --groups docker "$TARGET_USER"
   install -d -o "$TARGET_USER" -g "$TARGET_GROUP" -m 0755 "$TARGET_HOME/Developer"
   ensure_ingest_mount_directories
-  if ! sudo -u "$TARGET_USER" docker network inspect local-network >/dev/null 2>&1; then
-      sudo -u "$TARGET_USER" docker network create local-network
-  fi
+  ensure_local_network
 
   check_installation
   write_success_marker
