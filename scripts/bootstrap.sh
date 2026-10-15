@@ -2,7 +2,7 @@
 # Provision the shared Ubuntu 24.04 WSL development baseline as root.
 set -Eeuo pipefail
 
-readonly BOOTSTRAP_VERSION='phase-2'
+readonly BOOTSTRAP_VERSION='phase-3'
 readonly OS_RELEASE_FILE="${WSL_DEVELOPMENT_ENVIRONMENT_OS_RELEASE_FILE:-/etc/os-release}"
 readonly DOCKER_KEYRING_DIR='/etc/apt/keyrings'
 readonly DOCKER_KEYRING_PATH="$DOCKER_KEYRING_DIR/docker.asc"
@@ -35,6 +35,17 @@ require_target_user() {
   [[ $TARGET_USER =~ ^[a-z_][a-z0-9_-]{0,31}$ ]] || die "Invalid Linux username: $TARGET_USER"
   getent passwd "$TARGET_USER" >/dev/null || die "Linux user does not exist: $TARGET_USER"
   TARGET_GROUP=$(id -gn "$TARGET_USER")
+  TARGET_HOME=$(getent passwd "$TARGET_USER" | cut -d: -f6)
+  [[ -n $TARGET_HOME && -d $TARGET_HOME ]] || die "Unable to determine an existing home directory for $TARGET_USER"
+}
+
+ensure_ingest_mount_directories() {
+  # These paths are bind-mounted by codi/ingest.  The Docker daemon must be
+  # able to traverse them and the developer must be able to write to them.
+  install -d -o "$TARGET_USER" -g "$TARGET_GROUP" -m 0777 \
+      "$TARGET_HOME/Volumes/sql-server/data" \
+      "$TARGET_HOME/Volumes/sql-server/log" \
+      "$TARGET_HOME/Volumes/sftp/testuser/upload"
 }
 
 require_ubuntu_noble() {
@@ -140,12 +151,8 @@ main() {
 
   enable_docker_service
   usermod --append --groups docker "$TARGET_USER"
-  install -d -o "$TARGET_USER" -g "$TARGET_GROUP" -m 0755 "/home/$TARGET_USER/Developer"
-  install -d -o "$TARGET_USER" -g "$TARGET_GROUP" -m 0777 \
-      "/home/$TARGET_USER/Volumes/sql-server/data" \
-      "/home/$TARGET_USER/Volumes/sql-server/log" \
-      "/home/$TARGET_USER/Volumes/sftp/testuser/upload"
-
+  install -d -o "$TARGET_USER" -g "$TARGET_GROUP" -m 0755 "$TARGET_HOME/Developer"
+  ensure_ingest_mount_directories
   if ! sudo -u "$TARGET_USER" docker network inspect local-network >/dev/null 2>&1; then
       sudo -u "$TARGET_USER" docker network create local-network
   fi

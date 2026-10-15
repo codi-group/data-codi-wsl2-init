@@ -5,6 +5,11 @@ set -Eeuo pipefail
 readonly OS_RELEASE_FILE='/etc/os-release'
 readonly BOOTSTRAP_MARKER='/var/lib/wsl-development-environment/bootstrap-success'
 readonly DOCKER_SOCKET='/var/run/docker.sock'
+readonly -a INGEST_MOUNT_DIRECTORIES=(
+  'Volumes/sql-server/data'
+  'Volumes/sql-server/log'
+  'Volumes/sftp/testuser/upload'
+)
 
 failures=0
 skip_network_smoke_test=false
@@ -102,6 +107,13 @@ check_developer_directory() {
   [[ -d "$HOME/Developer" && -O "$HOME/Developer" && -w "$HOME/Developer" ]]
 }
 
+check_ingest_mount_directories() {
+  local directory
+  for directory in "${INGEST_MOUNT_DIRECTORIES[@]}"; do
+    [[ -d "$HOME/$directory" && -w "$HOME/$directory" && -x "$HOME/$directory" ]] || return 1
+  done
+}
+
 check_docker_cli() {
   docker version >/dev/null
 }
@@ -142,13 +154,13 @@ main() {
   check 'normal non-root user session' test "$(id -u)" -ne 0
   check 'baseline commands (git, ssh, curl, file, gcc, make)' check_baseline_commands
   check 'Developer directory is owned and writable by the current user' check_developer_directory
+  check 'ingest bind-mount directories are writable and traversable' check_ingest_mount_directories
   check 'Docker CLI' check_docker_cli
   check 'Docker Compose plugin' check_docker_compose
   check 'Docker Buildx plugin' check_docker_buildx
   check 'docker.service is enabled and active' check_docker_service
   check 'current user is in docker group' check_docker_group
   check 'Docker socket and daemon access without sudo' check_docker_daemon
-
   if $skip_network_smoke_test; then
     skip 'Docker hello-world smoke test (network-dependent; full validation remains incomplete)'
   else

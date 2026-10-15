@@ -24,6 +24,7 @@ check_systemd() { return 0; }
 check_cloud_init() { return 0; }
 check_baseline_commands() { return 0; }
 check_developer_directory() { return 0; }
+check_ingest_mount_directories() { return 0; }
 check_docker_cli() { return 0; }
 check_docker_compose() { return 0; }
 check_docker_buildx() { return 0; }
