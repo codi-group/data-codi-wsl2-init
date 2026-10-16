@@ -24,12 +24,14 @@ check_systemd() { return 0; }
 check_cloud_init() { return 0; }
 check_baseline_commands() { return 0; }
 check_developer_directory() { return 0; }
+check_ingest_mount_directories() { return 0; }
 check_docker_cli() { return 0; }
 check_docker_compose() { return 0; }
 check_docker_buildx() { return 0; }
 check_docker_service() { return 0; }
 check_docker_group() { return 0; }
 check_docker_daemon() { return 0; }
+check_local_network() { return 0; }
 check_hello_world() { return 0; }
 id() {
   [[ $1 == '-u' ]] || return 1

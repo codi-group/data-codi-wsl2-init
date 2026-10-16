@@ -99,6 +99,14 @@ systemctl is-active --quiet docker.service
 id -nG "$TEST_USER" | tr ' ' '\n' | grep -Fx docker
 test -d "/home/$TEST_USER/Developer"
 test "$(stat -c '%U' "/home/$TEST_USER/Developer")" == "$TEST_USER"
+for directory in \
+  "/home/$TEST_USER/Volumes/sql-server/data" \
+  "/home/$TEST_USER/Volumes/sql-server/log" \
+  "/home/$TEST_USER/Volumes/sftp/testuser/upload"; do
+  test -d "$directory"
+  test "$(stat -c '%U:%a' "$directory")" == "$TEST_USER:777"
+done
+docker network inspect local-network >/dev/null
 docker version >/dev/null
 docker compose version >/dev/null
 docker buildx version >/dev/null
@@ -114,6 +122,13 @@ grep -c '^Types: deb$' /etc/apt/sources.list.d/docker.sources | grep -Fx 1
 id -nG "$TEST_USER" | tr ' ' '\n' | grep -cFx docker | grep -Fx 1
 test "$(stat -c '%U' "/home/$TEST_USER/Developer")" == "$TEST_USER"
 test -f "/home/$TEST_USER/Developer/bootstrap-rerun-sentinel"
+for directory in \
+  "/home/$TEST_USER/Volumes/sql-server/data" \
+  "/home/$TEST_USER/Volumes/sql-server/log" \
+  "/home/$TEST_USER/Volumes/sftp/testuser/upload"; do
+  test "$(stat -c '%U:%a' "$directory")" == "$TEST_USER:777"
+done
+docker network inspect local-network >/dev/null
 runuser --login "$TEST_USER" --command "PATH=$VALIDATE_PATH $INSTALLED_VALIDATE"
 
 printf 'bootstrap-integration-test.sh: PASS\n'

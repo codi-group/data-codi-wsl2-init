@@ -36,7 +36,8 @@ Cloud-init consumes this distribution-specific file only on the distribution's f
 
 ## Current implementation status
 
-The embedded `bootstrap.sh` provisions the shared Ubuntu baseline (`ca-certificates`, `curl`, `file`, `git`, `openssh-client`, `procps`, and `build-essential`), Docker Engine from Docker's official Ubuntu repository, Compose, Buildx, Docker service enablement, Docker-group membership, and `~/Developer` ownership. It is safe to rerun after an interrupted provision.
+The embedded `bootstrap.sh` provisions the shared Ubuntu baseline (`ca-certificates`, `curl`, `file`, `git`, `openssh-client`, `procps`, and `build-essential`), Docker Engine from Docker's official Ubuntu repository, Compose, Buildx, Docker service enablement, Docker-group membership, and `~/Developer` ownership. It also creates the writable, traversable bind-mount directories required by `codi/ingest` (`~/Volumes/sql-server/data`, `~/Volumes/sql-server/log`, and `~/Volumes/sftp/testuser/upload`).
+It creates the shared `local-network` Docker network after Docker is available. The bootstrap is safe to rerun after an interrupted provision.
 
 The installed validation command verifies the completed baseline. Personal Git/SSH configuration, dotfiles, account authentication, VS Code extensions, and project dependencies remain outside baseline provisioning.
 
@@ -70,7 +71,7 @@ Run validation as the normal Linux user, not with `sudo`:
 validate-wsl-development-environment
 ```
 
-It runs as the normal user and checks the Ubuntu and WSL2 environment, cloud-init/bootstrap evidence, baseline tools, `~/Developer`, Docker service and non-root access, Compose, Buildx, and `docker run --rm hello-world`. It uses non-interactive `sudo` only to inspect root-owned cloud-init state; Docker commands remain non-root checks. The final smoke test downloads an image on its first run and therefore needs network access.
+It runs as the normal user and checks the Ubuntu and WSL2 environment, cloud-init/bootstrap evidence, baseline tools, `~/Developer`, the ingest bind-mount directories, the `local-network` Docker network, Docker service and non-root access, Compose, Buildx, and `docker run --rm hello-world`. It uses non-interactive `sudo` only to inspect root-owned cloud-init state; Docker commands remain non-root checks. The final smoke test downloads an image on its first run and therefore needs network access.
 
 For network diagnosis only, omit that one smoke test:
 
